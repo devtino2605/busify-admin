@@ -1,0 +1,200 @@
+/* Base styles để hiển thị content từ TinyMCE */
+.blog-content {
+  max-width: 100%;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #333;
+}
+
+/* Style nhẹ nhàng để tăng cường trải nghiệm mà không ghi đè TinyMCE */
+.blog-content h1,
+.blog-content h2,
+.blog-content h3,
+.blog-content h4,
+.blog-content h5,
+.blog-content h6 {
+  font-weight: 600;
+  line-height: 1.3;
+  color: #1a1a1a;
+  margin-top: 1.3em;
+  margin-bottom: 0.7em;
+}
+
+/* Điều chỉnh kích thước tiêu đề từ TinyMCE nếu cần */
+.blog-content h1 {
+  font-size: 2em;
+}
+.blog-content h2 {
+  font-size: 1.75em;
+}
+.blog-content h3 {
+  font-size: 1.5em;
+}
+.blog-content h4 {
+  font-size: 1.25em;
+}
+
+/* Chỉnh nhẹ đoạn văn để dễ đọc hơn */
+.blog-content p {
+  margin-bottom: 1em;
+}
+
+/* Giữ links dễ nhận biết */
+.blog-content a {
+  color: #1890ff;
+}
+
+.blog-content a:hover {
+  color: #40a9ff;
+}
+
+/* Đảm bảo hình ảnh hiển thị đúng */
+.blog-content img {
+  max-width: 100%;
+  height: auto;
+  margin: 0.8em 0;
+}
+
+/* Danh sách từ TinyMCE */
+.blog-content ul,
+.blog-content ol {
+  padding-left: 2em;
+  margin-bottom: 1em;
+}
+
+/* Định dạng trích dẫn */
+.blog-content blockquote {
+  border-left: 4px solid #ddd;
+  padding: 0.5em 1em;
+  margin: 1em 0;
+  background-color: #f9f9f9;
+  color: #555;
+}
+
+/* Hỗ trợ bảng từ TinyMCE */
+.blog-content table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  width: 100%;
+}
+
+.blog-content table th,
+.blog-content table td {
+  padding: 0.6em;
+  border: 1px solid #ddd;
+}
+
+.blog-content table th {
+  background-color: #fafafa;
+}
+
+/* Hỗ trợ các định dạng code từ TinyMCE */
+.blog-content pre {
+  background-color: #f6f8fa;
+  padding: 1em;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.blog-content code {
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.9em;
+  padding: 0.2em 0.4em;
+  background-color: #f6f8fa;
+  border-radius: 3px;
+}
+
+/* Đường kẻ ngang */
+.blog-content hr {
+  border: 0;
+  border-top: 1px solid #eee;
+  margin: 1.5em 0;
+}
+
+/* Hỗ trợ class đặc biệt từ DanTri */
+.blog-content .singular-sapo {
+  font-weight: 500;
+  font-style: italic;
+  color: #444;
+  border-left: 3px solid #1890ff;
+  padding-left: 1em;
+  margin: 1em 0 1.5em;
+  line-height: 1.6;
+}
+
+.blog-content .singular-content {
+  margin-top: 1.5em;
+}
+
+/* Hỗ trợ figure và caption từ TinyMCE */
+.blog-content figure {
+  margin: 1em 0;
+  text-align: center;
+}
+
+.blog-content figure img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.blog-content figure figcaption {
+  margin-top: 0.5em;
+  font-size: 0.9em;
+  color: #666;
+  font-style: italic;
+}
+
+/* Định dạng từ cấu hình TinyMCE */
+.blog-content .aligncenter {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+.blog-content .alignleft {
+  float: left;
+  margin-right: 1em;
+}
+
+.blog-content .alignright {
+  float: right;
+  margin-left: 1em;
+}
+
+/* Hỗ trợ các list style từ TinyMCE */
+.blog-content ul.checklist {
+  list-style-type: none;
+  padding-left: 1.5em;
+}
+
+.blog-content ul.checklist li:before {
+  content: "✓";
+  margin-right: 0.5em;
+  color: #52c41a;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .blog-content {
+    font-size: 15px;
+  }
+  .blog-content h1 {
+    font-size: 1.8em;
+  }
+  .blog-content h2 {
+    font-size: 1.5em;
+  }
+  .blog-content h3 {
+    font-size: 1.3em;
+  }
+  .blog-content h4 {
+    font-size: 1.2em;
+  }
+}

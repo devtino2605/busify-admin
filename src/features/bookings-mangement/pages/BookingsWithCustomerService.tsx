@@ -208,13 +208,7 @@ const BookingsWithCustomerService: React.FC = () => {
     setSearchParams({ page: 1, size: 10 });
   };
 
-  const handleTableChange = (
-    paginationInfo: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    filters: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    sorter: any
-  ) => {
+  const handleTableChange = (paginationInfo: any) => {
     const formValues = form.getFieldsValue();
     const { bookingCode, routeName, status, fromDate, toDate, sellingMethod } =
       formValues;

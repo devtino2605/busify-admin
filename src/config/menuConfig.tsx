@@ -9,6 +9,7 @@ import {
   FrownOutlined,
   MessageOutlined,
   GiftOutlined,
+  BookOutlined,
 } from "@ant-design/icons";
 
 export interface AppMenuItem {
@@ -126,6 +127,24 @@ export const menuItems: AppMenuItem[] = [
     label: "Quản lý Logs",
   },
   {
+    key: "blog-management",
+    icon: <BookOutlined />,
+    label: "Quản lý Blog",
+    roles: ["ADMIN"],
+    children: [
+      {
+        key: "blog-posts",
+        label: "Bài viết",
+        roles: ["ADMIN"],
+      },
+      {
+        key: "blog-create",
+        label: "Tạo bài viết mới",
+        roles: ["ADMIN"],
+      },
+    ],
+  },
+  {
     type: "divider",
   },
   {
@@ -153,6 +172,9 @@ export const routeToKeyMap: Record<string, string> = {
   "/admin/audit-logs": "log-management",
   "/admin/tickets": "tickets-customer-service",
   "/admin/bookings": "bookings-customer-service",
+  "/admin/blog-posts": "blog-posts",
+  "/admin/blog-create": "blog-create",
+  "/admin/blog-edit": "blog-create",
   // customer service
   "/customer-service": "dashboard-customer-service",
   "/customer-service/tickets": "tickets-customer-service",

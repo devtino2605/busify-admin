@@ -505,15 +505,39 @@ const CampaignPromotionSelector: React.FC<CampaignPromotionSelectorProps> = ({
               <Form.Item
                 name="discountValue"
                 label="Giá trị giảm"
+                dependencies={["discountType"]}
                 rules={[
                   { required: true, message: "Vui lòng nhập giá trị giảm" },
-                  { type: "number", min: 0, message: "Giá trị phải lớn hơn 0" },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (value === null || value === undefined) {
+                        return Promise.resolve();
+                      }
+                      const type = getFieldValue("discountType");
+                      if (type === DiscountType.PERCENTAGE) {
+                        if (value > 0 && value <= 100) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(
+                          new Error("Phần trăm phải từ 1 đến 100")
+                        );
+                      }
+                      if (type === DiscountType.FIXED_AMOUNT) {
+                        if (value > 0) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(
+                          new Error("Số tiền phải lớn hơn 0")
+                        );
+                      }
+                      return Promise.resolve();
+                    },
+                  }),
                 ]}
               >
                 <InputNumber
                   placeholder="Nhập giá trị"
                   style={{ width: "100%" }}
-                  min={0}
                 />
               </Form.Item>
             </Col>
@@ -544,10 +568,17 @@ const CampaignPromotionSelector: React.FC<CampaignPromotionSelectorProps> = ({
           </Row>
 
           <Row gutter={16}>
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item
                 name="minOrderValue"
                 label="Giá trị đơn hàng tối thiểu"
+                rules={[
+                  {
+                    type: "number",
+                    min: 0,
+                    message: "Giá trị phải lớn hơn hoặc bằng 0",
+                  },
+                ]}
               >
                 <InputNumber
                   placeholder="Không giới hạn"
@@ -556,10 +587,35 @@ const CampaignPromotionSelector: React.FC<CampaignPromotionSelectorProps> = ({
                 />
               </Form.Item>
             </Col>
-            <Col span={12}>
-              <Form.Item name="usageLimit" label="Giới hạn sử dụng">
+            <Col span={8}>
+              <Form.Item
+                name="usageLimit"
+                label="Giới hạn sử dụng"
+                rules={[
+                  {
+                    type: "number",
+                    min: 1,
+                    message: "Giới hạn phải lớn hơn 0",
+                  },
+                ]}
+              >
                 <InputNumber
                   placeholder="Không giới hạn"
+                  style={{ width: "100%" }}
+                  min={1}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="priority"
+                label="Độ ưu tiên"
+                rules={[
+                  { type: "number", min: 1, message: "Ưu tiên phải lớn hơn 0" },
+                ]}
+              >
+                <InputNumber
+                  placeholder="Mặc định: 1"
                   style={{ width: "100%" }}
                   min={1}
                 />

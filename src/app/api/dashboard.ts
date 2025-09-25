@@ -4,11 +4,7 @@ import {
   type BusOperatorFilterParams,
 } from "./bus-operator";
 import { getAllTrips, type Trip } from "./trip";
-import {
-  getAllBookingsForStats,
-  searchBookings,
-  type Booking,
-} from "./booking";
+import { getAllBookingsForStats, searchBookings } from "./booking";
 import { getAuditLogs } from "./audit-log";
 import { getYearlyRevenue } from "./revenue";
 
@@ -116,8 +112,6 @@ export const dashboardApi = {
         size: 10000,
       });
 
-      console.log("📅 Monthly bookings:", monthlyBookings.result.result);
-
       const monthlyRevenue = monthlyBookings.result.result.reduce(
         (sum, booking) => sum + booking.total_amount,
         0
@@ -132,8 +126,6 @@ export const dashboardApi = {
         size: 10000,
       });
 
-      console.log("📈 Today bookings:", todayBookings);
-
       // Weekly bookings (last 7 days)
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
@@ -142,8 +134,6 @@ export const dashboardApi = {
         endDate: today,
         size: 10000,
       });
-
-      console.log("📅 Weekly bookings:", weeklyBookings);
 
       const allTrips = tripsRes?.result || [];
 

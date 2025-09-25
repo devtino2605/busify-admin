@@ -28,6 +28,7 @@ import {
   type PromotionRequestDTO,
   type PromotionResponseDTO,
 } from "../../../app/api/promotion";
+import PromotionConditionsForm from "./PromotionConditionsForm";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -71,6 +72,7 @@ const PromotionForm: React.FC<PromotionFormProps> = ({
             dayjs(editingPromotion.endDate),
           ],
           isActive: isActiveValue,
+          conditions: editingPromotion.conditions || [],
         });
 
         setDiscountType(editingPromotion.discountType);
@@ -107,7 +109,10 @@ const PromotionForm: React.FC<PromotionFormProps> = ({
         status: values.isActive
           ? PromotionStatus.ACTIVE
           : PromotionStatus.INACTIVE,
+        conditions: values.conditions || [],
       };
+
+      console.log("promotion data", promotionData);
 
       await onSubmit(promotionData);
       form.resetFields();
@@ -146,7 +151,7 @@ const PromotionForm: React.FC<PromotionFormProps> = ({
           {editingPromotion ? "Cập nhật" : "Tạo mới"}
         </Button>,
       ]}
-      width={800}
+      width={1000}
       destroyOnClose
     >
       <Form
@@ -220,13 +225,35 @@ const PromotionForm: React.FC<PromotionFormProps> = ({
             <Form.Item
               name="discountValue"
               label="Giá trị giảm"
+              dependencies={["discountType"]}
               rules={[
                 { required: true, message: "Vui lòng nhập giá trị giảm" },
-                {
-                  type: "number",
-                  min: 0.01,
-                  message: "Giá trị phải lớn hơn 0",
-                },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value) {
+                      // Let the required rule handle this
+                      return Promise.resolve();
+                    }
+                    const type = getFieldValue("discountType");
+                    if (type === DiscountType.PERCENTAGE) {
+                      if (value > 0 && value <= 100) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(
+                        new Error("Phần trăm giảm giá phải từ 0 đến 100")
+                      );
+                    }
+                    if (type === DiscountType.FIXED_AMOUNT) {
+                      if (value > 0) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(
+                        new Error("Số tiền giảm giá phải lớn hơn 0")
+                      );
+                    }
+                    return Promise.resolve();
+                  },
+                }),
               ]}
             >
               <InputNumber
@@ -256,7 +283,13 @@ const PromotionForm: React.FC<PromotionFormProps> = ({
             <Form.Item
               name="minOrderValue"
               label="Giá trị đơn hàng tối thiểu"
-              rules={[{ type: "number", min: 0, message: "Giá trị phải >= 0" }]}
+              rules={[
+                {
+                  type: "number",
+                  min: 0,
+                  message: "Giá trị phải lớn hơn hoặc bằng 0",
+                },
+              ]}
             >
               <InputNumber
                 style={{ width: "100%" }}
@@ -281,23 +314,52 @@ const PromotionForm: React.FC<PromotionFormProps> = ({
               label="Thời gian hiệu lực"
               rules={[
                 { required: true, message: "Vui lòng chọn thời gian hiệu lực" },
+                () => ({
+                  validator(_, value) {
+                    if (!value || !value[0] || !value[1]) {
+                      return Promise.resolve();
+                    }
+                    const [startDate, endDate] = value;
+                    if (startDate.isBefore(dayjs().startOf("day"))) {
+                      return Promise.reject(
+                        new Error(
+                          "Ngày bắt đầu phải là hôm nay hoặc trong tương lai"
+                        )
+                      );
+                    }
+                    if (endDate.isBefore(dayjs())) {
+                      return Promise.reject(
+                        new Error("Ngày kết thúc phải ở trong tương lai")
+                      );
+                    }
+                    if (endDate.isBefore(startDate)) {
+                      return Promise.reject(
+                        new Error("Ngày kết thúc phải sau ngày bắt đầu")
+                      );
+                    }
+                    return Promise.resolve();
+                  },
+                }),
               ]}
             >
               <RangePicker
                 style={{ width: "100%" }}
                 placeholder={["Ngày bắt đầu", "Ngày kết thúc"]}
                 suffixIcon={<CalendarOutlined />}
-                disabledDate={(current) =>
-                  current && current < dayjs().startOf("day")
-                }
               />
             </Form.Item>
           </Col>
           <Col span={6}>
             <Form.Item
               name="usageLimit"
-              label="Giới hạn"
-              rules={[{ type: "number", min: 1, message: "Phải >= 1" }]}
+              label="Giới hạn lượt sử dụng"
+              rules={[
+                {
+                  type: "number",
+                  min: 1,
+                  message: "Giới hạn lượt sử dụng phải lớn hơn 0",
+                },
+              ]}
             >
               <InputNumber
                 style={{ width: "100%" }}
@@ -311,15 +373,14 @@ const PromotionForm: React.FC<PromotionFormProps> = ({
               name="priority"
               label="Độ ưu tiên"
               rules={[
-                { type: "number", min: 1, max: 10, message: "Từ 1 đến 10" },
+                {
+                  type: "number",
+                  min: 1,
+                  message: "Độ ưu tiên phải lớn hơn 0",
+                },
               ]}
             >
-              <InputNumber
-                style={{ width: "100%" }}
-                placeholder="1"
-                min={1}
-                max={10}
-              />
+              <InputNumber style={{ width: "100%" }} placeholder="1" min={1} />
             </Form.Item>
           </Col>
         </Row>
@@ -327,10 +388,20 @@ const PromotionForm: React.FC<PromotionFormProps> = ({
         <Row>
           <Col span={24}>
             <Form.Item name="isActive" valuePropName="checked">
-              <Space>
-                <Switch />
-                <Text>Kích hoạt ngay sau khi tạo</Text>
-              </Space>
+              <Switch />
+            </Form.Item>
+            <Text style={{ marginLeft: 8 }}>Kích hoạt ngay sau khi tạo</Text>
+          </Col>
+        </Row>
+
+        <Divider orientation="left">
+          <Text strong>Điều kiện khuyến mãi (Tùy chọn)</Text>
+        </Divider>
+
+        <Row>
+          <Col span={24}>
+            <Form.Item name="conditions">
+              <PromotionConditionsForm />
             </Form.Item>
           </Col>
         </Row>

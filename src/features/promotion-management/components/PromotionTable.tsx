@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   Tag,
@@ -17,7 +17,7 @@ import {
   PercentageOutlined,
   DollarOutlined,
   CalendarOutlined,
-  UserOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {
@@ -26,6 +26,7 @@ import {
   PromotionStatus,
   type PromotionResponseDTO,
 } from "../../../app/api/promotion";
+import PromotionConditionsView from "./PromotionConditionsView";
 
 const { Text } = Typography;
 
@@ -51,6 +52,10 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
   onView,
   pagination,
 }) => {
+  const [conditionsDrawerOpen, setConditionsDrawerOpen] = useState(false);
+  const [selectedPromotion, setSelectedPromotion] =
+    useState<PromotionResponseDTO | null>(null);
+
   const getStatusColor = (status: PromotionStatus) => {
     switch (status) {
       case PromotionStatus.ACTIVE:
@@ -204,7 +209,32 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
       },
     },
     {
-      title: "Sử dụng",
+      title: "Điều kiện",
+      key: "conditions",
+      width: 120,
+      render: (record: PromotionResponseDTO) => {
+        const conditions = record.conditions;
+        if (!conditions || conditions.length === 0) {
+          return <Text type="secondary">Không có</Text>;
+        }
+
+        return (
+          <Button
+            type="text"
+            size="small"
+            icon={<SettingOutlined />}
+            onClick={() => {
+              setSelectedPromotion(record);
+              setConditionsDrawerOpen(true);
+            }}
+          >
+            {conditions.length} điều kiện
+          </Button>
+        );
+      },
+    },
+    {
+      title: "Số lượng còn lại",
       key: "usage",
       width: 120,
       render: (record: PromotionResponseDTO) => {
@@ -217,10 +247,9 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
         return (
           <Space direction="vertical" size="small">
             <Space size="small">
-              <UserOutlined style={{ fontSize: "12px" }} />
               <Text style={{ fontSize: "12px" }}>
                 {record.usageCount}
-                {record.usageLimit ? ` / ${record.usageLimit}` : ""}
+                {record.usageLimit ? ` ${record.usageLimit}` : ""}
               </Text>
             </Space>
             {record.usageLimit && (
@@ -282,38 +311,49 @@ const PromotionTable: React.FC<PromotionTableProps> = ({
   ];
 
   return (
-    <Table
-      columns={columns}
-      dataSource={data}
-      rowKey="id"
-      loading={loading}
-      pagination={
-        pagination
-          ? {
-              current: pagination.current,
-              total: pagination.total,
-              pageSize: pagination.pageSize,
-              onChange: pagination.onChange,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total, range) =>
-                `${range[0]}-${range[1]} của ${total} mã giảm giá`,
-              pageSizeOptions: ["10", "20", "50", "100"],
-            }
-          : false
-      }
-      scroll={{ x: 1200 }}
-      size="small"
-      rowClassName={(record) => {
-        if (record.status === PromotionStatus.EXPIRED) {
-          return "opacity-60";
+    <>
+      <Table
+        columns={columns}
+        dataSource={data}
+        rowKey="id"
+        loading={loading}
+        pagination={
+          pagination
+            ? {
+                current: pagination.current,
+                total: pagination.total,
+                pageSize: pagination.pageSize,
+                onChange: pagination.onChange,
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total, range) =>
+                  `${range[0]}-${range[1]} của ${total} mã giảm giá`,
+                pageSizeOptions: ["10", "20", "50", "100"],
+              }
+            : false
         }
-        if (isExpiringSoon(record.endDate)) {
-          return "bg-yellow-50";
-        }
-        return "";
-      }}
-    />
+        scroll={{ x: 1400 }}
+        size="small"
+        rowClassName={(record) => {
+          if (record.status === PromotionStatus.EXPIRED) {
+            return "opacity-60";
+          }
+          if (isExpiringSoon(record.endDate)) {
+            return "bg-yellow-50";
+          }
+          return "";
+        }}
+      />
+
+      <PromotionConditionsView
+        visible={conditionsDrawerOpen}
+        onClose={() => {
+          setConditionsDrawerOpen(false);
+          setSelectedPromotion(null);
+        }}
+        promotion={selectedPromotion}
+      />
+    </>
   );
 };
 

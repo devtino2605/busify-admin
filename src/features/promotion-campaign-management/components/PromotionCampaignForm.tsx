@@ -303,15 +303,38 @@ const PromotionCampaignForm: React.FC<PromotionCampaignFormProps> = ({
                   required: true,
                   message: "Vui lòng chọn thời gian chiến dịch",
                 },
+                () => ({
+                  validator(_, value) {
+                    if (!value || !value[0] || !value[1]) {
+                      return Promise.resolve();
+                    }
+                    const [startDate, endDate] = value;
+                    if (startDate.isBefore(dayjs().startOf("day"))) {
+                      return Promise.reject(
+                        new Error(
+                          "Ngày bắt đầu phải là hôm nay hoặc trong tương lai"
+                        )
+                      );
+                    }
+                    if (endDate.isBefore(dayjs())) {
+                      return Promise.reject(
+                        new Error("Ngày kết thúc phải ở trong tương lai")
+                      );
+                    }
+                    if (endDate.isBefore(startDate)) {
+                      return Promise.reject(
+                        new Error("Ngày kết thúc phải sau ngày bắt đầu")
+                      );
+                    }
+                    return Promise.resolve();
+                  },
+                }),
               ]}
             >
               <RangePicker
                 style={{ width: "100%" }}
                 placeholder={["Ngày bắt đầu", "Ngày kết thúc"]}
                 suffixIcon={<CalendarOutlined />}
-                disabledDate={(current) =>
-                  current && current < dayjs().startOf("day")
-                }
               />
             </Form.Item>
           </Col>
@@ -351,11 +374,11 @@ const PromotionCampaignForm: React.FC<PromotionCampaignFormProps> = ({
         <Row>
           <Col span={24}>
             <Form.Item name="active" valuePropName="checked">
-              <Space>
-                <Switch />
-                <Text>Kích hoạt chiến dịch ngay sau khi tạo</Text>
-              </Space>
+              <Switch />
             </Form.Item>
+            <Text style={{ marginLeft: 8 }}>
+              Kích hoạt chiến dịch ngay sau khi tạo
+            </Text>
           </Col>
         </Row>
       </Form>

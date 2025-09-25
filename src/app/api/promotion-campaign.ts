@@ -44,7 +44,7 @@ export interface PromotionCampaignResponseDTO {
   promotionCount: number;
   promotions?: Array<{
     id: number;
-    code?: string;
+    code: string;
     discountType: string;
     promotionType: string;
     discountValue: number;
@@ -54,6 +54,12 @@ export interface PromotionCampaignResponseDTO {
     usageLimit?: number;
     status: string;
     priority?: number;
+    conditions?: Array<{
+      conditionId: number;
+      conditionType: string;
+      conditionValue?: string;
+      isRequired: boolean;
+    }>;
   }>; // Full promotion objects from backend
   createdAt?: string;
   updatedAt?: string;
@@ -141,6 +147,28 @@ export const createPromotionCampaign = async (
           `promotions[${index}].priority`,
           promotion.priority.toString()
         );
+      }
+
+      // Add conditions if provided
+      if (promotion.conditions && promotion.conditions.length > 0) {
+        promotion.conditions.forEach((condition, conditionIndex) => {
+          formData.append(
+            `promotions[${index}].conditions[${conditionIndex}].conditionType`,
+            condition.conditionType
+          );
+          if (condition.conditionValue) {
+            formData.append(
+              `promotions[${index}].conditions[${conditionIndex}].conditionValue`,
+              condition.conditionValue
+            );
+          }
+          if (condition.isRequired !== undefined) {
+            formData.append(
+              `promotions[${index}].conditions[${conditionIndex}].isRequired`,
+              condition.isRequired.toString()
+            );
+          }
+        });
       }
     });
 
@@ -325,6 +353,28 @@ export const updatePromotionCampaign = async (
           `promotions[${index}].priority`,
           promotion.priority.toString()
         );
+      }
+
+      // Add conditions if provided
+      if (promotion.conditions && promotion.conditions.length > 0) {
+        promotion.conditions.forEach((condition, conditionIndex) => {
+          formData.append(
+            `promotions[${index}].conditions[${conditionIndex}].conditionType`,
+            condition.conditionType
+          );
+          if (condition.conditionValue) {
+            formData.append(
+              `promotions[${index}].conditions[${conditionIndex}].conditionValue`,
+              condition.conditionValue
+            );
+          }
+          if (condition.isRequired !== undefined) {
+            formData.append(
+              `promotions[${index}].conditions[${conditionIndex}].isRequired`,
+              condition.isRequired.toString()
+            );
+          }
+        });
       }
     });
     console.log("Existing Promotion IDs:", existingPromotionIds);
