@@ -121,6 +121,33 @@ export interface SearchBookingResponse {
   result: PaginatedBookingResult;
 }
 
+export interface BookingAddRequestDTO {
+  tripId: number;
+  seatNumber: string; // comma-separated seat numbers
+  totalAmount: number;
+  guestFullName: string;
+  guestPhone: string;
+  guestEmail?: string;
+  guestAddress?: string;
+  promotionId?: number | null;
+  discountCode?: string | null;
+}
+
+export interface BookingAddResponseDTO {
+  bookingId: number;
+  bookingCode: string;
+  discountCode: string | null;
+  seatNumber: string;
+  totalAmount: number;
+  status: string;
+}
+
+export interface ApiResponse<T> {
+  code: number;
+  message: string;
+  result: T;
+}
+
 export const getAllBookings = async (
   page: number = 1,
   size: number = 10
@@ -201,6 +228,21 @@ export const deleteBooking = async (bookingCode: string): Promise<boolean> => {
     return response.status === 200;
   } catch (error) {
     throw new Error("Không thể xóa đặt vé" + error);
+  }
+};
+
+// manual booking
+export const createManualBooking = async (
+  bookingData: BookingAddRequestDTO
+): Promise<ApiResponse<BookingAddResponseDTO>> => {
+  try {
+    const response = await apiClient.post(
+      `api/bookings/manual-booking`,
+      bookingData
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error("Không thể tạo đặt vé thủ công" + error);
   }
 };
 

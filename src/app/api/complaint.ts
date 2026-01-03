@@ -116,6 +116,15 @@ export interface GetComplaintsParams {
   size?: number;
 }
 
+export interface GetComplaintsByStatusParams extends GetComplaintsParams {
+  status: string;
+}
+
+export interface GetComplaintsWithFiltersParams extends GetComplaintsParams {
+  status?: string;
+  searchText?: string;
+}
+
 export const getAllComplaints = async (
   params: GetComplaintsParams = {}
 ): Promise<ComplaintPageResponse> => {
@@ -219,3 +228,39 @@ export const getDailyComplaintStatsForCurrentAgent =
       throw new Error("Không thể lấy thống kê khiếu nại hàng ngày" + error);
     }
   };
+
+export const getComplaintsByAgentAndStatus = async (
+  status: string,
+  params: GetComplaintsParams = {}
+): Promise<ComplaintPageResponse> => {
+  try {
+    const { page = 0, size = 10 } = params;
+    const response = await apiClient.get(
+      `api/complaints/agent/status/${status}`,
+      {
+        params: { page, size },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      "Không thể lấy danh sách khiếu nại theo trạng thái" + error
+    );
+  }
+};
+
+export const getComplaintsByAgentWithFilters = async (
+  status: string = "all",
+  searchText: string = "",
+  params: GetComplaintsParams = {}
+): Promise<ComplaintPageResponse> => {
+  try {
+    const { page = 0, size = 10 } = params;
+    const response = await apiClient.get("api/complaints/agent/filter", {
+      params: { status, searchText, page, size },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error("Không thể lấy danh sách khiếu nại với bộ lọc" + error);
+  }
+};

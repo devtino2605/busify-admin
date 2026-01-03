@@ -6,7 +6,6 @@ import {
   CarOutlined,
   CalendarOutlined,
 } from "@ant-design/icons";
-import { Pie, Column } from "@ant-design/charts";
 
 interface MonthlyReportData {
   year: number;
@@ -39,32 +38,6 @@ const MonthlyReportCharts: React.FC<MonthlyReportChartsProps> = ({
       </Card>
     );
   }
-
-  // Dữ liệu cho biểu đồ tròn phân tích
-  const analysisData = [
-    {
-      type: "Hành khách",
-      value: monthlyData.totalPassengers,
-      color: "#1890ff",
-    },
-    { type: "Chuyến đi", value: monthlyData.totalTrips, color: "#722ed1" },
-    { type: "Xe hoạt động", value: monthlyData.totalBuses, color: "#fa8c16" },
-  ];
-
-  
-
-  // Dữ liệu cho biểu đồ cột so sánh
-  const comparisonData = [
-    {
-      metric: "Hành khách",
-      value: monthlyData.totalPassengers || 0,
-      unit: "người",
-    },
-    { metric: "Chuyến đi", value: monthlyData.totalTrips || 0, unit: "chuyến" },
-    { metric: "Xe hoạt động", value: monthlyData.totalBuses || 0, unit: "xe" },
-  ];
-
-  
 
   return (
     <>
@@ -112,8 +85,6 @@ const MonthlyReportCharts: React.FC<MonthlyReportChartsProps> = ({
           </Card>
         </Col>
       </Row>
-
-     
 
       {/* Report Details */}
       <Card title="📋 Chi tiết báo cáo tháng" size="small">

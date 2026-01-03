@@ -3,6 +3,8 @@ import {
   Modal,
   Form,
   Input,
+  InputNumber,
+  Select,
   DatePicker,
   Switch,
   Row,
@@ -25,6 +27,7 @@ import {
   type PromotionCampaignResponseDTO,
   type CampaignPromotionData,
 } from "../../../app/api/promotion-campaign";
+import { DiscountType } from "../../../app/api/promotion";
 import CampaignPromotionSelector from "./CampaignPromotionSelector";
 
 const { Title, Text } = Typography;
@@ -64,6 +67,8 @@ const PromotionCampaignForm: React.FC<PromotionCampaignFormProps> = ({
         form.setFieldsValue({
           title: editingCampaign.title,
           description: editingCampaign.description,
+          discountType: editingCampaign.discountType,
+          discountValue: editingCampaign.discountValue,
           dateRange: [
             dayjs(editingCampaign.startDate),
             dayjs(editingCampaign.endDate),
@@ -146,6 +151,8 @@ const PromotionCampaignForm: React.FC<PromotionCampaignFormProps> = ({
         | PromotionCampaignUpdateDTO = {
         title: values.title,
         description: values.description,
+        discountValue: values.discountValue,
+        discountType: values.discountType,
         startDate: startDate.format("YYYY-MM-DD"),
         endDate: endDate.format("YYYY-MM-DD"),
         active: values.active,
@@ -294,7 +301,45 @@ const PromotionCampaignForm: React.FC<PromotionCampaignFormProps> = ({
         </Row>
 
         <Row gutter={16}>
-          <Col span={12}>
+          <Col span={6}>
+            <Form.Item
+              name="discountType"
+              label="Loại giảm giá"
+              rules={[
+                { required: true, message: "Vui lòng chọn loại giảm giá" },
+              ]}
+            >
+              <Select placeholder="Chọn loại giảm giá">
+                <Select.Option value={DiscountType.PERCENTAGE}>
+                  Phần trăm (%)
+                </Select.Option>
+                <Select.Option value={DiscountType.FIXED_AMOUNT}>
+                  Số tiền cố định (VNĐ)
+                </Select.Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={6}>
+            <Form.Item
+              name="discountValue"
+              label="Giá trị giảm"
+              rules={[
+                { required: true, message: "Vui lòng nhập giá trị giảm" },
+                {
+                  type: "number",
+                  min: 0,
+                  message: "Giá trị phải lớn hơn hoặc bằng 0",
+                },
+              ]}
+            >
+              <InputNumber
+                style={{ width: "100%" }}
+                min={0}
+                placeholder="Nhập giá trị giảm"
+              />
+            </Form.Item>
+          </Col>
+          <Col span={6}>
             <Form.Item
               name="dateRange"
               label="Thời gian chiến dịch"
@@ -338,7 +383,7 @@ const PromotionCampaignForm: React.FC<PromotionCampaignFormProps> = ({
               />
             </Form.Item>
           </Col>
-          <Col span={12}>
+          <Col span={6}>
             <Form.Item name="banner" label="Banner chiến dịch">
               <Upload
                 listType="picture-card"

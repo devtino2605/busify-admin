@@ -99,7 +99,14 @@ const MailSenderModal: React.FC<MailSenderModalProps> = ({
         userName: defaultUserName || "",
       });
     }
-  }, [isVisible, defaultRecipient, defaultSubject, caseNumber, defaultUserName, form]);
+  }, [
+    isVisible,
+    defaultRecipient,
+    defaultSubject,
+    caseNumber,
+    defaultUserName,
+    form,
+  ]);
 
   return (
     <Modal
@@ -113,7 +120,7 @@ const MailSenderModal: React.FC<MailSenderModalProps> = ({
       onCancel={handleCancel}
       width={600}
       footer={null}
-      destroyOnClose
+      destroyOnHidden
     >
       <div
         style={{

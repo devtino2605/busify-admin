@@ -9,7 +9,7 @@ import {
 // Cập nhật interface StatsData để loại bỏ pending
 interface StatsData {
   new: number;
-  // Loại bỏ pending
+  pending: number; // Thêm lại pending
   inProgress: number;
   resolved: number;
   rejected: number;
@@ -60,7 +60,11 @@ export const MetricsCard: React.FC<MetricsCardProps> = ({
                 prefix={<ExclamationCircleOutlined />}
                 valueStyle={{ color: "#f5222d" }}
               />
-              {/* Loại bỏ Statistic cho "Chờ xử lý" */}
+              {/* <Statistic
+                title="Chờ xử lý"
+                value={stats.pending}
+                valueStyle={{ color: "#faad14" }}
+              /> */}
               <Statistic
                 title="Đang xử lý"
                 value={stats.inProgress}
@@ -103,6 +107,7 @@ export const MetricsCard: React.FC<MetricsCardProps> = ({
                 options={[
                   { label: "Tất cả", value: "all" },
                   { label: "Mới", value: "New" },
+                  // { label: "Chờ xử lý", value: "pending" },
                   { label: "Đang xử lý", value: "in_progress" },
                   { label: "Đã giải quyết", value: "resolved" },
                   { label: "Từ chối", value: "rejected" },

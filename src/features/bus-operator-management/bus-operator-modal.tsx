@@ -36,6 +36,7 @@ export interface BusOperatorFormData {
   address: string;
   description?: string;
   licenseFile: string;
+  password?: string;
 }
 
 interface BusOperatorModalProps {
@@ -121,6 +122,9 @@ const BusOperatorModal: React.FC<BusOperatorModalProps> = ({
       formData.append("address", values.address);
       formData.append("description", values.description);
       formData.append("status", values.status);
+      if (values.password) {
+        formData.append("password", values.password);
+      }
       const fileObj = values.licenseFile?.[0]?.originFileObj;
       if (fileObj) {
         formData.append("licenseFile", fileObj);
@@ -217,6 +221,17 @@ const BusOperatorModal: React.FC<BusOperatorModalProps> = ({
                   <Select.Option value="active">Hoạt động</Select.Option>
                   <Select.Option value="suspended">Tạm ngưng</Select.Option>
                 </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="password"
+                label="Mật khẩu (Tài khoản chủ)"
+                rules={[
+                  { min: 6, message: "Mật khẩu phải có ít nhất 6 ký tự!" },
+                ]}
+              >
+                <Input.Password placeholder="Nhập mật khẩu (để trống nếu không đổi)" />
               </Form.Item>
             </Col>
           </Row>

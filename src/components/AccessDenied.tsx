@@ -47,7 +47,7 @@ const AccessDenied: React.FC<AccessDeniedProps> = ({
           borderRadius: 16,
           boxShadow: token.boxShadowSecondary,
         }}
-        bodyStyle={{ padding: 0 }}
+        styles={{ body: { padding: 0 } }}
       >
         <div
           style={{

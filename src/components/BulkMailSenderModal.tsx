@@ -123,7 +123,7 @@ const BulkMailSenderModal: React.FC<BulkMailSenderModalProps> = ({
       onCancel={handleCancel}
       width={600}
       footer={null}
-      destroyOnClose
+      destroyOnHidden
     >
       <div
         style={{

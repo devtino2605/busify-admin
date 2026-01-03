@@ -7,11 +7,11 @@ import { MetricsCard } from "../components/MetricsCard";
 import { TicketsList } from "../components/TicketsList";
 import { DashboardSidebar } from "../components/DashboardSidebar";
 import {
-  getInProgressComplaintsByAgent,
   type ComplaintDetail,
   updateComplaintStatus,
   getComplaintStatsForCurrentAgent,
   getDailyComplaintStatsForCurrentAgent,
+  getComplaintsByAgentWithFilters,
 } from "../../../app/api/complaint";
 import { DashboardHeader } from "../components/DashboardHeader";
 import ComplaintDetailModal from "../../complaints-management/components/ComplaintDetailModal";
@@ -45,12 +45,23 @@ export const DashboardWithCustomerService = () => {
     isError: isErrorComplaints,
     error: errorComplaints,
   } = useQuery({
-    queryKey: ["complaints", "agent", currentPage, pageSize],
+    queryKey: [
+      "complaints",
+      "agent",
+      selectedStatus,
+      searchText,
+      currentPage,
+      pageSize,
+    ],
     queryFn: async () => {
-      const response = await getInProgressComplaintsByAgent({
-        page: currentPage,
-        size: pageSize,
-      });
+      const response = await getComplaintsByAgentWithFilters(
+        selectedStatus,
+        searchText,
+        {
+          page: currentPage,
+          size: pageSize,
+        }
+      );
       if (response.code !== 200) {
         throw new Error(
           response.message || "Không thể tải danh sách khiếu nại."
@@ -163,19 +174,6 @@ export const DashboardWithCustomerService = () => {
   ]);
   // --- Kết thúc tích hợp React Query cho Chat ---
 
-  const filteredTickets = complaints.filter((ticket) => {
-    const matchesStatus =
-      selectedStatus === "all" || ticket.status === selectedStatus;
-    const matchesSearch =
-      searchText === "" ||
-      ticket.customer.customerName
-        .toLowerCase()
-        .includes(searchText.toLowerCase()) ||
-      ticket.title.toLowerCase().includes(searchText.toLowerCase()) ||
-      ticket.id.toString().toLowerCase().includes(searchText.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
-
   const metrics = {
     new: dailyStats?.inProgressCount ?? 0,
     pending: stats?.pending ?? 0,
@@ -242,6 +240,10 @@ export const DashboardWithCustomerService = () => {
     minHeight: "100%",
   };
 
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [selectedStatus]);
+
   return (
     <div style={containerStyle}>
       <DashboardHeader onRefresh={handleRefresh} />
@@ -288,7 +290,7 @@ export const DashboardWithCustomerService = () => {
             </div>
           ) : (
             <TicketsList
-              tickets={filteredTickets}
+              tickets={complaints} // Sử dụng complaints trực tiếp
               currentPage={currentPage}
               totalElements={totalElements}
               pageSize={pageSize}

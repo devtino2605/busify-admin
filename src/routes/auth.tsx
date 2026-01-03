@@ -8,6 +8,7 @@ import DashboardLayout from "../app/layouts/DashboardLayout";
 import UserManagement from "../features/user-management/user";
 import ProtectedRoute from "../components/ProtectedRoute";
 import BusOperatorManagement from "../features/bus-operator-management/bus-operator";
+import LocationManagement from "../features/location-management/location";
 import ContractManagement from "../features/contract-management/contracts";
 import RevenueReports from "../features/revenue-management/revenue-reports";
 import RevenueAnalytics from "../features/revenue-management/revenue-analytics";
@@ -34,6 +35,7 @@ import PermissionSettingsPage from "../features/role-management/pages/Permission
 import { DashboardWithCustomerService } from "../features/dashboard/pages/dashboardWithCustomerService";
 import Dashboard from "../features/dashboard/pages/dashboard";
 import { ChatWithCustomerServicePage } from "../features/chat/chatWithCustomerServicePage";
+import ProfilePage from "../features/profile/Profile";
 
 export function withRole(element: React.ReactNode, roles: string[]) {
   return <ProtectedRoute allowedRoles={roles}>{element}</ProtectedRoute>;
@@ -84,6 +86,10 @@ export const CustomerServiceRoute: RouteObject = {
       path: "chat",
       element: <ChatWithCustomerServicePage />,
     },
+    {
+      path: "profile",
+      element: withRole(<ProfilePage />, ["CUSTOMER_SERVICE", "ADMIN"]),
+    },
   ],
 };
 
@@ -103,6 +109,10 @@ export const AuthRoute: RouteObject = {
     {
       path: "bus-operators-management",
       element: withRole(<BusOperatorManagement />, ["ADMIN"]),
+    },
+    {
+      path: "locations-management",
+      element: withRole(<LocationManagement />, ["ADMIN"]),
     },
     {
       path: "contracts",

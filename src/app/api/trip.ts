@@ -4,15 +4,19 @@ import apiClient from ".";
 export interface Trip {
   trip_id: number;
   operator_name: string;
+  operator_avatar?: string;
   route: {
+    route_id?: number;
     start_location: string;
     end_location: string;
+    default_duration_minutes?: number;
   };
   amenities: {
     wifi?: boolean;
     air_conditioner?: boolean;
-    usb_charging?: boolean;
+    charging?: boolean;
     tv?: boolean;
+    toilet?: boolean;
   };
   average_rating: number;
   departure_time: string;
@@ -20,6 +24,7 @@ export interface Trip {
   status: string;
   price_per_seat: number;
   available_seats: number;
+  total_seats?: number;
 }
 
 export interface TripResponse {
@@ -28,14 +33,24 @@ export interface TripResponse {
   result: Trip[];
 }
 
-export interface TripFilterParams {
-  routeId?: number;
-  busOperatorIds?: number[];
+export interface TripSearchParams {
   departureDate?: string;
-  busModels?: string[];
   untilTime?: string;
   availableSeats?: number;
-  amenities?: string[];
+  startLocation?: number;
+  endLocation?: number;
+  status?: string;
+}
+
+export interface Location {
+  locationId: number;
+  locationName: string;
+}
+
+export interface LocationsResponse {
+  code: number;
+  message: string;
+  result: Location[];
 }
 
 export const getAllTrips = async (): Promise<TripResponse> => {
@@ -50,15 +65,17 @@ export const getAllTrips = async (): Promise<TripResponse> => {
   }
 };
 
-export const filterTrips = async (
-  params: TripFilterParams
+export const searchTrips = async (
+  params: TripSearchParams
 ): Promise<TripResponse> => {
   try {
-    const response = await apiClient.post("api/trips/filter", params);
+    const response = await apiClient.post("api/trips/search", params);
     return response.data;
   } catch (error: any) {
-    console.error("API Error - filterTrips:", error);
-    throw new Error(error.response?.data?.message || "Không thể lọc chuyến đi");
+    console.error("API Error - searchTrips:", error);
+    throw new Error(
+      error.response?.data?.message || "Không thể tìm kiếm chuyến đi"
+    );
   }
 };
 
@@ -73,5 +90,15 @@ export const getTripById = async (
     throw new Error(
       error.response?.data?.message || "Không thể lấy thông tin chuyến đi"
     );
+  }
+};
+
+export const getLocations = async (): Promise<LocationsResponse> => {
+  try {
+    const response = await apiClient.get("api/locations");
+    return response.data;
+  } catch (error: any) {
+    console.error("API Error - getLocations:", error);
+    throw new Error("Không thể lấy danh sách địa điểm");
   }
 };

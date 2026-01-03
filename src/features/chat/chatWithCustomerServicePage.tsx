@@ -68,22 +68,12 @@ export const ChatWithCustomerServicePage = () => {
       message: Omit<ChatMessage, "id">;
     }) => {
       sendMessage(roomId, message);
-      return { roomId, message };
+      // No return needed, we'll rely on WebSocket for the update
     },
-    onSuccess: (data) => {
-      // Optimistically update the messages list in the cache
-      const { roomId, message } = data;
+    onSuccess: (_data, variables) => {
+      // Optimistically update the chat session list
+      const { roomId, message } = variables;
 
-      queryClient.setQueryData<ChatMessage[]>(
-        ["chatMessages", roomId],
-        (oldMessages = []) => [
-          ...oldMessages,
-          // Create a temporary id for the optimistic update
-          { ...message, id: Date.now() } as ChatMessage,
-        ]
-      );
-
-      // Update the chat session with the new message
       queryClient.setQueryData<ChatSession[]>(
         ["chatSessions"],
         (oldSessions = []) =>

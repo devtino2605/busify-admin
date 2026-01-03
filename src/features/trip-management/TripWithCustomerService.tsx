@@ -43,8 +43,9 @@ import TripDetailModal from "./components/TripDetailModal";
 import type { Trip } from "../../app/api/trip";
 import {
   getAllTrips,
-  filterTrips,
-  type TripFilterParams,
+  searchTrips,
+  type TripSearchParams,
+  getLocations,
 } from "../../app/api/trip";
 import { useQuery } from "@tanstack/react-query";
 
@@ -72,7 +73,6 @@ const TripWithCustomerServicePage: React.FC = () => {
   const {
     data: searchResults = [],
     isLoading,
-    isError,
     error,
     refetch,
   } = useQuery({
@@ -87,9 +87,22 @@ const TripWithCustomerServicePage: React.FC = () => {
     },
   });
 
-  // Use React Query to filter trips
+  // Use React Query to fetch locations
+  const { data: locations = [] } = useQuery({
+    queryKey: ["locations"],
+    queryFn: async () => {
+      const response = await getLocations();
+      if (response.code === 200) {
+        return response.result;
+      } else {
+        throw new Error(response.message || "Không thể tải danh sách địa điểm");
+      }
+    },
+  });
+
+  // Use React Query to search trips
   const filterQuery = useQuery({
-    queryKey: ["filteredTrips"],
+    queryKey: ["searchedTrips"],
     queryFn: async () => {
       const values = form.getFieldsValue();
       const {
@@ -101,45 +114,41 @@ const TripWithCustomerServicePage: React.FC = () => {
         minSeats,
       } = values;
 
-      const filterParams: TripFilterParams = {};
+      const searchParams: TripSearchParams = {};
 
       if (departureDate) {
-        filterParams.departureDate = dayjs(departureDate).format("YYYY-MM-DD");
+        searchParams.departureDate = dayjs(departureDate)
+          .startOf("day")
+          .toISOString();
       }
 
-      if (departureTime) {
-        filterParams.untilTime = dayjs(departureTime).format("HH:mm");
+      if (departureTime && departureDate) {
+        searchParams.untilTime = dayjs(departureDate)
+          .hour(dayjs(departureTime).hour())
+          .minute(dayjs(departureTime).minute())
+          .toISOString();
       }
 
       if (minSeats) {
-        filterParams.availableSeats = parseInt(minSeats);
+        searchParams.availableSeats = parseInt(minSeats);
       }
 
-      const response = await filterTrips(filterParams);
+      if (startLocation) {
+        searchParams.startLocation = startLocation;
+      }
+
+      if (endLocation) {
+        searchParams.endLocation = endLocation;
+      }
+
+      if (status) {
+        searchParams.status = status;
+      }
+
+      const response = await searchTrips(searchParams);
 
       if (response.code === 200) {
-        let results = response.result;
-
-        // Apply client-side filtering for fields not supported by API
-        if (startLocation) {
-          results = results.filter((trip) =>
-            trip.route.start_location
-              .toLowerCase()
-              .includes(startLocation.toLowerCase())
-          );
-        }
-        if (endLocation) {
-          results = results.filter((trip) =>
-            trip.route.end_location
-              .toLowerCase()
-              .includes(endLocation.toLowerCase())
-          );
-        }
-        if (status) {
-          results = results.filter((trip) => trip.status === status);
-        }
-
-        return results;
+        return response.result;
       } else {
         throw new Error(response.message || "Không thể tìm kiếm chuyến đi");
       }
@@ -207,9 +216,11 @@ const TripWithCustomerServicePage: React.FC = () => {
       amenityList.push(<WifiOutlined key="wifi" title="WiFi" />);
     if (amenities.air_conditioner)
       amenityList.push(<SnippetsOutlined key="ac" title="Điều hòa" />);
-    if (amenities.usb_charging)
-      amenityList.push(<ThunderboltOutlined key="usb" title="Sạc USB" />);
+    if (amenities.charging)
+      amenityList.push(<ThunderboltOutlined key="charging" title="Sạc" />);
     if (amenities.tv) amenityList.push(<DesktopOutlined key="tv" title="TV" />);
+    if (amenities.toilet)
+      amenityList.push(<CarOutlined key="toilet" title="WC" />);
 
     return <Space>{amenityList}</Space>;
   };
@@ -354,13 +365,19 @@ const TripWithCustomerServicePage: React.FC = () => {
     },
   ];
 
-  // Update stats to reflect new status categories
+  // Determine current data based on search state
+  const currentData = hasSearched ? filterQuery.data || [] : searchResults;
+  const currentLoading = hasSearched ? filterQuery.isLoading : isLoading;
+  const currentError = hasSearched ? filterQuery.error : error;
+  const currentRefetch = hasSearched ? filterQuery.refetch : refetch;
+
+  // Update stats to reflect current data
   const stats = {
-    total: searchResults.length,
-    onSell: searchResults.filter((t) => t.status === "on_sell").length,
-    scheduled: searchResults.filter((t) => t.status === "scheduled").length,
-    cancelled: searchResults.filter((t) => t.status === "cancelled").length,
-    totalSeats: searchResults.reduce(
+    total: currentData.length,
+    onSell: currentData.filter((t) => t.status === "on_sell").length,
+    scheduled: currentData.filter((t) => t.status === "scheduled").length,
+    cancelled: currentData.filter((t) => t.status === "cancelled").length,
+    totalSeats: currentData.reduce(
       (sum, trip) => sum + trip.available_seats,
       0
     ),
@@ -385,17 +402,17 @@ const TripWithCustomerServicePage: React.FC = () => {
       </Title>
 
       {/* Error Alert */}
-      {isError && (
+      {currentError && (
         <Alert
           message="Lỗi"
-          description={error?.message}
+          description={currentError?.message}
           type="error"
           showIcon
           closable
           onClose={() => {}}
           style={{ marginBottom: "24px" }}
           action={
-            <Button size="small" onClick={() => refetch()}>
+            <Button size="small" onClick={() => currentRefetch()}>
               Thử lại
             </Button>
           }
@@ -413,18 +430,40 @@ const TripWithCustomerServicePage: React.FC = () => {
           <Row gutter={16}>
             <Col xs={24} sm={12} lg={6}>
               <Form.Item name="startLocation" label="Điểm khởi hành">
-                <Input
-                  placeholder="Nhập điểm khởi hành"
-                  prefix={<EnvironmentOutlined />}
-                />
+                <Select
+                  placeholder="Chọn điểm khởi hành"
+                  allowClear
+                  showSearch
+                  optionFilterProp="children"
+                >
+                  {locations.map((location) => (
+                    <Option
+                      key={location.locationId}
+                      value={location.locationId}
+                    >
+                      {location.locationName}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} lg={6}>
               <Form.Item name="endLocation" label="Điểm đến">
-                <Input
-                  placeholder="Nhập điểm đến"
-                  prefix={<EnvironmentOutlined />}
-                />
+                <Select
+                  placeholder="Chọn điểm đến"
+                  allowClear
+                  showSearch
+                  optionFilterProp="children"
+                >
+                  {locations.map((location) => (
+                    <Option
+                      key={location.locationId}
+                      value={location.locationId}
+                    >
+                      {location.locationName}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} lg={6}>
@@ -475,7 +514,7 @@ const TripWithCustomerServicePage: React.FC = () => {
                     type="primary"
                     htmlType="submit"
                     icon={<SearchOutlined />}
-                    loading={isLoading}
+                    loading={currentLoading}
                   >
                     Tìm kiếm
                   </Button>
@@ -498,7 +537,7 @@ const TripWithCustomerServicePage: React.FC = () => {
               value={stats.total}
               prefix={<CarOutlined />}
               valueStyle={{ color: PALETTE.primary }}
-              loading={isLoading}
+              loading={currentLoading}
             />
           </Card>
         </Col>
@@ -508,7 +547,7 @@ const TripWithCustomerServicePage: React.FC = () => {
               title="Đang bán vé"
               value={stats.onSell}
               valueStyle={{ color: PALETTE.success }}
-              loading={isLoading}
+              loading={currentLoading}
             />
           </Card>
         </Col>
@@ -518,7 +557,7 @@ const TripWithCustomerServicePage: React.FC = () => {
               title="Đã lên lịch"
               value={stats.scheduled}
               valueStyle={{ color: PALETTE.muted }}
-              loading={isLoading}
+              loading={currentLoading}
             />
           </Card>
         </Col>
@@ -528,7 +567,7 @@ const TripWithCustomerServicePage: React.FC = () => {
               title="Đã hủy"
               value={stats.cancelled}
               valueStyle={{ color: PALETTE.danger }}
-              loading={isLoading}
+              loading={currentLoading}
             />
           </Card>
         </Col>
@@ -540,17 +579,17 @@ const TripWithCustomerServicePage: React.FC = () => {
           <Empty description="Không có chuyến đi nào" />
         ) : (
           <>
-            {hasSearched && !isLoading && (
+            {hasSearched && !currentLoading && (
               <Alert
-                message={`Tìm thấy ${searchResults.length} chuyến đi phù hợp`}
+                message={`Tìm thấy ${currentData.length} chuyến đi phù hợp`}
                 type="success"
                 showIcon
                 style={{ marginBottom: "16px" }}
               />
             )}
-            {!hasSearched && !isLoading && (
+            {!hasSearched && !currentLoading && (
               <Alert
-                message={`Hiển thị tất cả ${searchResults.length} chuyến đi trong hệ thống`}
+                message={`Hiển thị tất cả ${currentData.length} chuyến đi trong hệ thống`}
                 type="info"
                 showIcon
                 style={{ marginBottom: "16px" }}
@@ -558,9 +597,9 @@ const TripWithCustomerServicePage: React.FC = () => {
             )}
             <Table
               columns={columns}
-              dataSource={searchResults}
+              dataSource={currentData}
               rowKey="trip_id"
-              loading={isLoading}
+              loading={currentLoading}
               scroll={{ x: 1400 }}
               pagination={{
                 pageSize: 10,

@@ -46,6 +46,7 @@ import TripSeatSelector from "./TripSeatSelector";
 // Import the API functions
 import { getTripSeats } from "../../../app/api/tripSeat";
 import { getSeatLayout } from "../../../app/api/seatLayout";
+import { createManualBooking } from "../../../app/api/booking";
 import MailSenderModal from "../../../components/MailSenderModal";
 import BulkMailSenderModal from "../../../components/BulkMailSenderModal"; // Add import for BulkMailSenderModal
 import { useQuery } from "@tanstack/react-query";
@@ -235,7 +236,7 @@ const TripDetailModal: React.FC<TripDetailModalProps> = ({
         </Tag>
       );
     }
-    if (trip.amenities.usb_charging) {
+    if (trip.amenities.charging) {
       amenities.push(
         <Tag key="usb" color={PALETTE.warning} style={{ margin: "2px" }}>
           <ThunderboltOutlined /> Sạc USB
@@ -281,24 +282,44 @@ const TripDetailModal: React.FC<TripDetailModalProps> = ({
   };
 
   const handleBookingSubmit = async (values: any) => {
+    if (!trip || selectedSeats.length === 0) {
+      message.error("Vui lòng chọn ghế trước khi đặt vé");
+      return;
+    }
+
     setBookingLoading(true);
     try {
-      // TODO: Implement actual booking API call here
-      console.log("Booking submitted:", {
-        tripId: trip?.trip_id,
-        seats: selectedSeats,
-        customerInfo: values,
-      });
+      const totalAmount = selectedSeats.length * trip.price_per_seat;
 
-      message.success("Đặt vé thành công!");
-      setBookingModalVisible(false);
-      setSelectedSeats([]);
-      bookingForm.resetFields();
+      const bookingData = {
+        tripId: trip.trip_id,
+        seatNumber: selectedSeats.join(","),
+        totalAmount,
+        guestFullName: values.guestFullName,
+        guestPhone: values.guestPhone,
+        guestEmail: values.guestEmail || undefined,
+        guestAddress: values.guestAddress || undefined,
+        promotionId: null,
+        discountCode: null,
+      };
 
-      // Refetch seat statuses after successful booking
-      refetchSeatStatuses();
-    } catch (error) {
-      message.error("Không thể đặt vé. Vui lòng thử lại sau." + error);
+      const response = await createManualBooking(bookingData);
+      if (response.code === 200) {
+        message.success(
+          `Đặt vé thành công! Mã đặt vé: ${response.result.bookingCode}`
+        );
+        setBookingModalVisible(false);
+        setSelectedSeats([]);
+        bookingForm.resetFields();
+
+        // Refetch seat statuses after successful booking
+        refetchSeatStatuses();
+      } else {
+        message.error(response.message || "Đặt vé thất bại");
+      }
+    } catch (error: any) {
+      console.error("Booking error:", error);
+      message.error(error.message || "Không thể đặt vé. Vui lòng thử lại sau.");
     } finally {
       setBookingLoading(false);
     }
@@ -308,7 +329,7 @@ const TripDetailModal: React.FC<TripDetailModalProps> = ({
     <Card title="Thông tin khách hàng" size="small" style={{ marginTop: 16 }}>
       <Form form={bookingForm} layout="vertical" onFinish={handleBookingSubmit}>
         <Form.Item
-          name="customerName"
+          name="guestFullName"
           label="Họ và tên"
           rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
         >
@@ -316,25 +337,32 @@ const TripDetailModal: React.FC<TripDetailModalProps> = ({
         </Form.Item>
 
         <Form.Item
-          name="phoneNumber"
+          name="guestPhone"
           label="Số điện thoại"
           rules={[
             { required: true, message: "Vui lòng nhập số điện thoại" },
-            { pattern: /^[0-9]{10}$/, message: "Số điện thoại không hợp lệ" },
+            {
+              pattern: /^[0-9]{10,11}$/,
+              message: "Số điện thoại không hợp lệ",
+            },
           ]}
         >
           <Input prefix={<PhoneOutlined />} placeholder="Nhập số điện thoại" />
         </Form.Item>
 
         <Form.Item
-          name="email"
+          name="guestEmail"
           label="Email"
-          rules={[
-            { required: true, message: "Vui lòng nhập email" },
-            { type: "email", message: "Email không hợp lệ" },
-          ]}
+          rules={[{ type: "email", message: "Email không hợp lệ" }]}
         >
-          <Input prefix={<MailOutlined />} placeholder="Nhập email" />
+          <Input
+            prefix={<MailOutlined />}
+            placeholder="Nhập email (tùy chọn)"
+          />
+        </Form.Item>
+
+        <Form.Item name="guestAddress" label="Địa chỉ">
+          <Input placeholder="Nhập địa chỉ (tùy chọn)" />
         </Form.Item>
 
         <Form.Item>
@@ -414,7 +442,7 @@ const TripDetailModal: React.FC<TripDetailModalProps> = ({
       open={visible}
       onClose={handleDrawerClose}
       width={900}
-      destroyOnClose={true}
+      destroyOnHidden={true}
       extra={
         <Space>
           <Dropdown overlay={emailMenu} trigger={["click"]}>

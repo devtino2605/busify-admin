@@ -67,7 +67,7 @@ export const TicketsList: React.FC<TicketsListProps> = ({
         ...ticketCardStyle,
         background: "#fafafa",
       }}
-      bodyStyle={{ padding: 0 }}
+      styles={{ body: { padding: 0 } }}
     >
       <div
         style={{

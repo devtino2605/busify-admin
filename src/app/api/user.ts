@@ -11,6 +11,12 @@ export interface UserFilterParams {
   sortDirection?: "asc" | "desc";
 }
 
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export const getAllUsersManagement = async (params: UserFilterParams = {}) => {
   const searchParams = new URLSearchParams();
 
@@ -48,5 +54,29 @@ export const updateUser = async (id: number, userData: UserInfo) => {
 
 export const deleteUserById = async (id: number): Promise<ApiResponse> => {
   const response = await apiClient.delete(`api/users/${id}`);
+  return response.data;
+};
+
+export const getUserProfile = async () => {
+  const response = await apiClient.get("api/users/profile");
+  return response.data;
+};
+
+export const changeUserPassword = async (
+  passwordData: ChangePasswordRequest
+) => {
+  const response = await apiClient.patch(
+    "api/users/change-password",
+    passwordData
+  );
+  return response.data;
+};
+
+export const updateUserProfile = async (
+  userData: Partial<
+    Pick<UserInfo, "fullName" | "email" | "phoneNumber" | "address">
+  >
+) => {
+  const response = await apiClient.patch("api/users/profile", userData);
   return response.data;
 };
