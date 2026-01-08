@@ -2,12 +2,10 @@
 import SockJS from "sockjs-client";
 import Stomp from "stompjs";
 import type { ChatMessage } from "../api/chat";
-import type { RecentActivity } from "../api/dashboard";
 
 type MessageHandler = (message: ChatMessage) => void;
 type ConnectionStatusHandler = (connected: boolean) => void;
 type NotificationHandler = (notification: ChatNotification) => void;
-type ActivityHandler = (activity: RecentActivity) => void;
 
 export interface ChatNotification {
   roomId: string;
@@ -25,9 +23,7 @@ class WebSocketService {
   private messageHandlers: Record<string, Set<MessageHandler>> = {};
   private connectionStatusHandlers = new Set<ConnectionStatusHandler>();
   private notificationHandlers = new Set<NotificationHandler>();
-  private activityHandlers = new Set<ActivityHandler>();
   private notificationSubscription: Stomp.Subscription | null = null;
-  private activitySubscription: Stomp.Subscription | null = null;
   private accessToken: string | null = null;
   private userEmail: string | null = null;
 

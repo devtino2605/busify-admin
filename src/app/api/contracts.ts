@@ -20,6 +20,61 @@ export const ReviewAction = {
 
 export type ReviewAction = (typeof ReviewAction)[keyof typeof ReviewAction];
 
+// AI Verification status enum
+export const VerificationStatus = {
+  VERIFIED: "VERIFIED",
+  MATCHED: "MATCHED",
+  PARTIAL_MATCH: "PARTIAL_MATCH",
+  MISMATCHED: "MISMATCHED",
+  UNVERIFIABLE: "UNVERIFIABLE",
+} as const;
+
+export type VerificationStatus =
+  (typeof VerificationStatus)[keyof typeof VerificationStatus];
+
+// AI Extracted Info interface
+export interface ExtractedInfo {
+  vatCode: string | null;
+  companyName: string | null;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  representativeName: string | null;
+  businessLicenseNumber: string | null;
+  businessType: string | null;
+  issuedDate: string | null;
+  issuedBy: string | null;
+  representativeNameFromIdCard?: string | null;
+  idCardNumber?: string | null;
+  confidenceScore: number;
+  warnings: string[];
+  rawExtractedText: string;
+}
+
+// Comparison Result interface
+export interface ComparisonResult {
+  fieldName: string;
+  displayName: string;
+  registeredValue: string | null;
+  detectedValue: string | null;
+  isMatch: boolean;
+  similarityScore: number;
+  note: string | null;
+}
+
+// AI Verification Response interface
+export interface AIVerificationResponse {
+  contractId: number;
+  verificationStatus: VerificationStatus;
+  extractedInfo: ExtractedInfo;
+  comparisonResults: ComparisonResult[];
+  overallConfidenceScore: number | null;
+  matchSummary: string | null;
+  warnings: string[];
+  verifiedAt: string;
+  recommendation: string;
+}
+
 // Types based on actual API response
 export interface ContractData {
   id: number;
@@ -31,11 +86,14 @@ export interface ContractData {
   endDate: string;
   operationArea: string;
   attachmentUrl: string;
+  representativeIdCardUrl?: string;
   approvedDate?: string;
   adminNote?: string;
   status: ContractStatus;
   createdDate: string;
   updatedDate: string;
+  verificationStatus?: VerificationStatus;
+  verificationResult?: AIVerificationResponse;
 }
 
 export interface PageableInfo {
@@ -146,5 +204,15 @@ export const contractsApi = {
       `/api/contracts/admin/${contractId}`
     );
     return response.data.result;
+  },
+
+  // AI Verify contract - Extract info from license image and compare with registered info
+  verifyContractWithAI: async (
+    contractId: number
+  ): Promise<ApiResponse<AIVerificationResponse>> => {
+    const response = await apiClient.post<ApiResponse<AIVerificationResponse>>(
+      `/api/contracts/admin/${contractId}/verify-with-ai`
+    );
+    return response.data;
   },
 };

@@ -186,6 +186,10 @@ const TripWithCustomerServicePage: React.FC = () => {
         return PALETTE.accent; // Purple for arrived
       case "cancelled":
         return PALETTE.danger; // Red for cancelled
+      case "unconfirmed_departure":
+        return "#fa8c16"; // Orange-red for unconfirmed
+      case "cancelled_by_system":
+        return "#722ed1"; // Purple for system cancelled
       default:
         return PALETTE.muted;
     }
@@ -205,6 +209,10 @@ const TripWithCustomerServicePage: React.FC = () => {
         return "Đã đến nơi";
       case "cancelled":
         return "Bị hủy";
+      case "unconfirmed_departure":
+        return "Chưa xác nhận";
+      case "cancelled_by_system":
+        return "Hủy tự động";
       default:
         return status;
     }

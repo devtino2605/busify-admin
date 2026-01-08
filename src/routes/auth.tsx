@@ -8,6 +8,7 @@ import DashboardLayout from "../app/layouts/DashboardLayout";
 import UserManagement from "../features/user-management/user";
 import ProtectedRoute from "../components/ProtectedRoute";
 import BusOperatorManagement from "../features/bus-operator-management/bus-operator";
+import LocationManagement from "../features/location-management/location";
 import ContractManagement from "../features/contract-management/contracts";
 import RevenueReports from "../features/revenue-management/revenue-reports";
 import RevenueAnalytics from "../features/revenue-management/revenue-analytics";
@@ -108,6 +109,10 @@ export const AuthRoute: RouteObject = {
     {
       path: "bus-operators-management",
       element: withRole(<BusOperatorManagement />, ["ADMIN"]),
+    },
+    {
+      path: "locations-management",
+      element: withRole(<LocationManagement />, ["ADMIN"]),
     },
     {
       path: "contracts",

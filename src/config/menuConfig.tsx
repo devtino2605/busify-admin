@@ -10,6 +10,7 @@ import {
   MessageOutlined,
   GiftOutlined,
   BookOutlined,
+  EnvironmentOutlined,
 } from "@ant-design/icons";
 
 export interface AppMenuItem {
@@ -37,6 +38,7 @@ export const menuItems: AppMenuItem[] = [
     label: "Quản lý Người dùng",
     roles: ["ADMIN"],
   },
+
   {
     key: "bus-operators",
     icon: <TruckOutlined />,
@@ -103,6 +105,12 @@ export const menuItems: AppMenuItem[] = [
     roles: ["ADMIN"],
   },
   {
+    key: "locations-management",
+    icon: <EnvironmentOutlined />,
+    label: "Quản lý Địa điểm",
+    roles: ["ADMIN"],
+  },
+  {
     key: "promotion",
     icon: <GiftOutlined />,
     label: "Quản lý Khuyến mãi",
@@ -120,12 +128,7 @@ export const menuItems: AppMenuItem[] = [
       },
     ],
   },
-  {
-    key: "log-management",
-    icon: <FileTextOutlined />,
-    roles: ["ADMIN"],
-    label: "Quản lý Logs",
-  },
+
   {
     key: "blog-management",
     icon: <BookOutlined />,
@@ -143,6 +146,12 @@ export const menuItems: AppMenuItem[] = [
         roles: ["ADMIN"],
       },
     ],
+  },
+  {
+    key: "log-management",
+    icon: <FileTextOutlined />,
+    roles: ["ADMIN"],
+    label: "Quản lý Logs",
   },
   {
     type: "divider",
@@ -175,6 +184,7 @@ export const routeToKeyMap: Record<string, string> = {
   "/admin/blog-posts": "blog-posts",
   "/admin/blog-create": "blog-create",
   "/admin/blog-edit": "blog-create",
+  "/admin/locations-management": "locations-management",
   // customer service
   "/customer-service": "dashboard-customer-service",
   "/customer-service/tickets": "tickets-customer-service",

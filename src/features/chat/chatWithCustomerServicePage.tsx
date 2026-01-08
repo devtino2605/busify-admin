@@ -67,6 +67,15 @@ export const ChatWithCustomerServicePage = () => {
       roomId: string;
       message: Omit<ChatMessage, "id">;
     }) => {
+      // Optimistically add message to UI immediately
+      queryClient.setQueryData<ChatMessage[]>(
+        ["chatMessages", roomId],
+        (oldMessages = []) => [
+          ...oldMessages,
+          { ...message, id: `temp-${Date.now()}` } as ChatMessage,
+        ]
+      );
+
       sendMessage(roomId, message);
       // No return needed, we'll rely on WebSocket for the update
     },
@@ -112,7 +121,13 @@ export const ChatWithCustomerServicePage = () => {
     (newMessage: ChatMessage) => {
       console.log("New message received:", newMessage);
 
-      // Add to messages list if from current room
+      // Skip if this is our own message (already added optimistically when sending)
+      if (newMessage.sender === loggedInUser?.email) {
+        console.log("Skipping own message (already added)");
+        return;
+      }
+
+      // Add to messages list if from current room (only other users' messages)
       queryClient.setQueryData<ChatMessage[]>(
         ["chatMessages", newMessage.roomId],
         (oldMessages = []) => [...oldMessages, newMessage]
@@ -137,7 +152,7 @@ export const ChatWithCustomerServicePage = () => {
           )
       );
     },
-    [queryClient, selectedChat?.id]
+    [queryClient, selectedChat?.id, loggedInUser?.email]
   );
 
   // Notification handler function for messages in other rooms

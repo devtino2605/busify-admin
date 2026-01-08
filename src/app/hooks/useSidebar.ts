@@ -129,6 +129,9 @@ export const useSidebar = () => {
       case "blog-create":
         navigate("/admin/blog-create");
         break;
+      case "locations-management":
+        navigate("/admin/locations-management");
+        break;
       default:
         // Can add navigation for other keys here or use a dynamic approach
         console.log("Navigate to:", key);

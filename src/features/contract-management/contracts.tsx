@@ -14,16 +14,23 @@ import {
   Tooltip,
 } from "antd";
 import { useQuery } from "@tanstack/react-query";
-import { EyeOutlined, EditOutlined } from "@ant-design/icons";
+import {
+  EyeOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ExclamationCircleOutlined,
+  QuestionCircleOutlined,
+  LoadingOutlined,
+} from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import {
   contractsApi,
   ContractStatus,
+  VerificationStatus,
   type ContractData,
   type ContractFilterParams,
 } from "../../app/api/contracts";
 import ModalDetail from "./modal-detail";
-import ModalReview from "./modal-review";
 
 const { Title } = Typography;
 
@@ -37,8 +44,6 @@ const ContractManagement: React.FC = () => {
     null
   );
   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
-  const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
-  const [reviewForm] = Form.useForm();
   const [filterForm] = Form.useForm();
 
   // Query for contracts list
@@ -89,12 +94,6 @@ const ContractManagement: React.FC = () => {
   const handleViewDetails = (contract: ContractData) => {
     setSelectedContract(contract);
     setIsDetailModalVisible(true);
-  };
-
-  // Handle review contract
-  const handleReviewContract = (contract: ContractData) => {
-    setSelectedContract(contract);
-    setIsReviewModalVisible(true);
   };
 
   // Handle filter changes
@@ -188,6 +187,69 @@ const ContractManagement: React.FC = () => {
         new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime(),
     },
     {
+      title: "AI Check",
+      dataIndex: "verificationStatus",
+      key: "verificationStatus",
+      width: 100,
+      align: "center",
+      render: (status: VerificationStatus, record: ContractData) => {
+        if (!status) {
+          // Nếu hợp đồng đã duyệt/từ chối mà không có kết quả AI -> Dữ liệu cũ
+          if (record.status !== ContractStatus.PENDING) {
+            return (
+              <Tooltip title="Chưa xác minh (Dữ liệu cũ)">
+                <QuestionCircleOutlined
+                  style={{ color: "#d9d9d9", fontSize: "18px" }}
+                />
+              </Tooltip>
+            );
+          }
+          // Nếu đang chờ duyệt mà chưa có kết quả -> Đang xử lý
+          return (
+            <Tooltip title="Đang xử lý">
+              <LoadingOutlined style={{ color: "#1890ff", fontSize: "18px" }} />
+            </Tooltip>
+          );
+        }
+
+        switch (status) {
+          case VerificationStatus.VERIFIED:
+          case VerificationStatus.MATCHED:
+            return (
+              <Tooltip title="Khớp hoàn toàn">
+                <CheckCircleOutlined
+                  style={{ color: "#52c41a", fontSize: "18px" }}
+                />
+              </Tooltip>
+            );
+          case VerificationStatus.PARTIAL_MATCH:
+            return (
+              <Tooltip title="Khớp một phần">
+                <ExclamationCircleOutlined
+                  style={{ color: "#faad14", fontSize: "18px" }}
+                />
+              </Tooltip>
+            );
+          case VerificationStatus.MISMATCHED:
+            return (
+              <Tooltip title="Không khớp">
+                <CloseCircleOutlined
+                  style={{ color: "#ff4d4f", fontSize: "18px" }}
+                />
+              </Tooltip>
+            );
+          default:
+            return (
+              <Tooltip title="Không thể xác minh">
+                <QuestionCircleOutlined
+                  style={{ color: "#d9d9d9", fontSize: "18px" }}
+                />
+              </Tooltip>
+            );
+        }
+      },
+    },
+    {
       title: "Thao tác",
       key: "actions",
       width: 150,
@@ -201,14 +263,6 @@ const ContractManagement: React.FC = () => {
               size="small"
               icon={<EyeOutlined />}
               onClick={() => handleViewDetails(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Đánh giá hợp đồng">
-            <Button
-              type="primary"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => handleReviewContract(record)}
             />
           </Tooltip>
         </Space>
@@ -313,19 +367,11 @@ const ContractManagement: React.FC = () => {
         </Col>
       </Row>
 
-      {/* Contract Details Modal */}
+      {/* Contract Details Modal with Review */}
       <ModalDetail
         isDetailModalVisible={isDetailModalVisible}
         setIsDetailModalVisible={setIsDetailModalVisible}
         selectedContract={selectedContract}
-      />
-
-      {/* Review Contract Modal */}
-      <ModalReview
-        isReviewModalVisible={isReviewModalVisible}
-        setIsReviewModalVisible={setIsReviewModalVisible}
-        selectedContract={selectedContract}
-        reviewForm={reviewForm}
       />
     </div>
   );

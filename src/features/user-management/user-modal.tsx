@@ -9,7 +9,8 @@ import {
   Select,
   type FormInstance,
 } from "antd";
-import { getAllRoles, type Role } from "../../app/api/role";
+import { getAllRoles } from "../../app/api/role";
+import type { Role } from "../../types/role";
 import { createUser, updateUser } from "../../app/api/user";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -27,6 +28,7 @@ export interface UserInfo {
   roleId: string;
   address: string;
   emailVerified: boolean;
+  password?: string;
 }
 
 const UserModal = ({
@@ -106,6 +108,7 @@ const UserModal = ({
           roleId: values.roleId,
           address: values.address,
           emailVerified: values.emailVerified,
+          password: values.password,
         };
         if (values.id) {
           updateUserMutation.mutate({ id: values.id, userInfo: userUpdate });
@@ -207,6 +210,15 @@ const UserModal = ({
               valuePropName="checked"
             >
               <Checkbox>Email đã được xác thực</Checkbox>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="password"
+              label="Mật khẩu"
+              rules={[{ min: 6, message: "Mật khẩu phải có ít nhất 6 ký tự!" }]}
+            >
+              <Input.Password placeholder="Nhập mật khẩu (để trống nếu không đổi)" />
             </Form.Item>
           </Col>
         </Row>

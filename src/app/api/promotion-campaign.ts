@@ -16,6 +16,8 @@ export interface PromotionCampaignCreateDTO {
   banner?: File;
   startDate: string; // ISO date string
   endDate: string; // ISO date string
+  discountValue: number; // Giá trị giảm giá cho campaign
+  discountType: string; // PERCENTAGE hoặc FIXED_AMOUNT
   active?: boolean;
   // promotions cho campaign - có thể là mới hoặc có sẵn
   promotions?: CampaignPromotionData[];
@@ -27,6 +29,8 @@ export interface PromotionCampaignUpdateDTO {
   banner?: File;
   startDate?: string;
   endDate?: string;
+  discountValue?: number; // Giá trị giảm giá cho campaign
+  discountType?: string; // PERCENTAGE hoặc FIXED_AMOUNT
   active?: boolean;
   // Update promotions - chỉ support khi có startDate và endDate
   promotions?: CampaignPromotionData[];
@@ -39,6 +43,8 @@ export interface PromotionCampaignResponseDTO {
   bannerUrl?: string;
   startDate: string;
   endDate: string;
+  discountValue?: number; // Giá trị giảm giá cho campaign
+  discountType?: string; // PERCENTAGE hoặc FIXED_AMOUNT
   active: boolean;
   deleted: boolean; // New field for soft delete status
   promotionCount: number;
@@ -100,6 +106,8 @@ export const createPromotionCampaign = async (
   }
   formData.append("startDate", data.startDate);
   formData.append("endDate", data.endDate);
+  formData.append("discountValue", data.discountValue.toString());
+  formData.append("discountType", data.discountType);
   formData.append("active", String(data.active ?? true));
 
   // Add promotions data if any
@@ -298,6 +306,12 @@ export const updatePromotionCampaign = async (
   }
   if (data.endDate) {
     formData.append("endDate", data.endDate);
+  }
+  if (data.discountValue !== undefined) {
+    formData.append("discountValue", data.discountValue.toString());
+  }
+  if (data.discountType) {
+    formData.append("discountType", data.discountType);
   }
   if (data.active !== undefined) {
     formData.append("active", String(data.active));

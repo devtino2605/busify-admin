@@ -121,7 +121,7 @@ const ManageRolesPage: React.FC = () => {
     setModalVisible(true);
   };
 
-  const getRoleUsageCount = (roleId: number) => {
+  const getRoleUsageCount = (_roleId: number) => {
     // Giả lập số lượng người dùng đang sử dụng vai trò này
     // Trong thực tế, bạn sẽ cần API để lấy thông tin này
     return Math.floor(Math.random() * 50);

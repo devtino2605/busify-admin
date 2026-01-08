@@ -73,10 +73,12 @@ const Sidebar = ({ collapsed = false }: SidebarProps) => {
         mode="inline"
         selectedKeys={[selectedKey]}
         onClick={handleMenuClick}
+        className="scrollbar-hide"
         style={{
           height: "calc(100vh - 64px)",
           borderRight: 0,
           paddingTop: "8px",
+          overflowY: "auto",
         }}
         items={getFilteredMenuItems()}
         theme="light"
