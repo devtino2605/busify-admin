@@ -11,6 +11,10 @@ import {
   Col,
   Avatar,
   message,
+  Form,
+  Select,
+  Input,
+  Divider,
 } from "antd";
 import {
   UserOutlined,
@@ -22,29 +26,39 @@ import {
   BookOutlined,
   CarOutlined,
   CloseOutlined,
+  CheckOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {
   getComplaintById,
+  updateComplaintStatus,
   type ComplaintDetail,
 } from "../../../app/api/complaint";
 
 const { Text, Paragraph } = Typography;
+const { Option } = Select;
+const { TextArea } = Input;
 
 interface ComplaintDetailModalProps {
   complaint: ComplaintDetail | null;
   visible: boolean;
   onClose: () => void;
+  onUpdate?: (complaint: ComplaintDetail) => void;
 }
 
 const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
   complaint,
   visible,
   onClose,
+  onUpdate,
 }) => {
+  const [form] = Form.useForm();
   const [detailLoading, setDetailLoading] = useState(false);
+  const [updateLoading, setUpdateLoading] = useState(false);
   const [complaintDetail, setComplaintDetail] =
     useState<ComplaintDetail | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const fetchComplaintDetail = async () => {
@@ -131,6 +145,48 @@ const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
     }
   };
 
+  const handleUpdateStatus = async (values: any) => {
+    if (!complaintDetail) return;
+
+    setUpdateLoading(true);
+    try {
+      const response = await updateComplaintStatus(
+        complaintDetail.id,
+        values.status
+      );
+
+      if (response.code === 200) {
+        message.success("Cập nhật trạng thái khiếu nại thành công");
+        setComplaintDetail(response.result);
+        setIsProcessing(false);
+        form.resetFields();
+
+        if (onUpdate) {
+          onUpdate(response.result);
+        }
+      } else {
+        message.error(response.message || "Cập nhật thất bại");
+      }
+    } catch (error) {
+      message.error("Không thể cập nhật trạng thái khiếu nại");
+      console.error(error);
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const handleStartProcessing = () => {
+    setIsProcessing(true);
+    form.setFieldsValue({
+      status: complaintDetail?.status || "in_progress",
+    });
+  };
+
+  const handleCancelProcessing = () => {
+    setIsProcessing(false);
+    form.resetFields();
+  };
+
   if (!complaint) {
     return null;
   }
@@ -147,11 +203,33 @@ const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
       onCancel={onClose}
       width={900}
       footer={
-        <Space>
-          <Button icon={<CloseOutlined />} onClick={onClose}>
-            Đóng
-          </Button>
-        </Space>
+        isProcessing ? (
+          <Space>
+            <Button onClick={handleCancelProcessing}>Hủy</Button>
+            <Button
+              type="primary"
+              icon={<CheckOutlined />}
+              loading={updateLoading}
+              onClick={() => form.submit()}
+            >
+              Lưu thay đổi
+            </Button>
+          </Space>
+        ) : (
+          <Space>
+            <Button icon={<CloseOutlined />} onClick={onClose}>
+              Đóng
+            </Button>
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={handleStartProcessing}
+              disabled={complaintDetail?.status === "resolved"}
+            >
+              Xử lý khiếu nại
+            </Button>
+          </Space>
+        )
       }
     >
       <div style={{ maxHeight: "70vh", overflowY: "auto" }}>
@@ -243,6 +321,44 @@ const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
                 </Col>
               </Row>
             </Card>
+
+            {/* Processing Form */}
+            {isProcessing && (
+              <>
+                <Divider>Xử lý khiếu nại</Divider>
+                <Card
+                  title="Cập nhật trạng thái"
+                  style={{ marginBottom: "16px" }}
+                >
+                  <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={handleUpdateStatus}
+                    initialValues={{
+                      status: complaintDetail.status,
+                    }}
+                  >
+                    <Form.Item
+                      name="status"
+                      label="Trạng thái mới"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Vui lòng chọn trạng thái",
+                        },
+                      ]}
+                    >
+                      <Select placeholder="Chọn trạng thái">
+                        <Option value="pending">Chờ xử lý</Option>
+                        <Option value="in_progress">Đang xử lý</Option>
+                        <Option value="resolved">Đã giải quyết</Option>
+                        <Option value="rejected">Từ chối</Option>
+                      </Select>
+                    </Form.Item>
+                  </Form>
+                </Card>
+              </>
+            )}
 
             {/* Booking Information */}
             <Card title="Thông tin đặt vé liên quan">

@@ -736,6 +736,11 @@ const ComplaintsWithCustomerServicePage: React.FC = () => {
           setIsModalVisible(false);
           setSelectedComplaint(null);
         }}
+        onUpdate={(updatedComplaint) => {
+          // Invalidate queries to refresh data
+          queryClient.invalidateQueries({ queryKey: ["complaints"] });
+          message.success("Đã cập nhật khiếu nại thành công");
+        }}
       />
     </div>
   );

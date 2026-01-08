@@ -28,14 +28,12 @@ const TopCharts: React.FC<TopChartsProps> = ({
   topTripsData,
   formatCurrency,
 }) => {
-
   const [key, setKey] = useState(0); // State để buộc tái render
 
   // Khi tab thay đổi, cập nhật key để tái render
   useEffect(() => {
     setKey((prev) => prev + 1);
   }, [topRoutesData, topTripsData]); // Tùy chỉnh dependency theo dữ liệu
-
 
   // Function để validate và format revenue
   const safeFormatCurrency = (value: number | null | undefined): string => {
@@ -81,17 +79,15 @@ const TopCharts: React.FC<TopChartsProps> = ({
       radius: [0, 4, 4, 0],
     },
     tooltip: {
-      formatter: (datum: {
-        fullName: string;
-        revenue: number;
-        trips: number;
-        bookings: number;
-      }) => ({
-        name: datum.fullName,
-        value: `${safeFormatCurrency(datum.revenue)} - ${datum.trips} chuyến - ${
-          datum.bookings
-        } booking`,
-      }),
+      fields: ["fullName", "revenue", "trips", "bookings"],
+      formatter: (datum: any) => {
+        return {
+          name: datum.fullName || "Tuyến",
+          value: `${safeFormatCurrency(datum.revenue || 0)} - ${
+            datum.trips || 0
+          } chuyến - ${datum.bookings || 0} booking`,
+        };
+      },
     },
     label: {
       position: "right" as const,
@@ -144,18 +140,15 @@ const TopCharts: React.FC<TopChartsProps> = ({
       },
     },
     tooltip: {
-      formatter: (datum: {
-        revenue: number;
-        bookings: number;
-        operator: string;
-        fullRoute: string;
-        departureTime: string;
-      }) => ({
-        name: datum.fullRoute,
-        value: `${safeFormatCurrency(datum.revenue)} • ${
-          safeNumber(datum.bookings)
-        } booking • ${datum.operator}`,
-      }),
+      fields: ["fullRoute", "revenue", "bookings", "operator", "departureTime"],
+      formatter: (datum: any) => {
+        return {
+          name: datum.fullRoute || "Chuyến",
+          value: `${safeFormatCurrency(datum.revenue || 0)} • ${safeNumber(
+            datum.bookings
+          )} booking • ${datum.operator || "N/A"}`,
+        };
+      },
     },
     xAxis: {
       label: {
@@ -176,22 +169,24 @@ const TopCharts: React.FC<TopChartsProps> = ({
   return (
     <Row gutter={[16, 16]} style={{ marginTop: "24px" }}>
       <Col xs={24} lg={12}>
-        <Card 
-          title="🏆 Top 5 Tuyến đường Doanh thu cao nhất" 
+        <Card
+          title="🏆 Top 5 Tuyến đường Doanh thu cao nhất"
           size="small"
           bodyStyle={{ padding: "16px 8px", height: "340px" }}
         >
           <div style={{ width: "100%", height: "300px", overflow: "hidden" }}>
             {hasRoutesData ? (
-              <Bar {...topRoutesConfig} height={300} autoFit key={key}/>
+              <Bar {...topRoutesConfig} height={300} autoFit key={key} />
             ) : (
-              <div style={{ 
-                display: "flex", 
-                justifyContent: "center", 
-                alignItems: "center", 
-                height: "100%",
-                color: "#999"
-              }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "100%",
+                  color: "#999",
+                }}
+              >
                 <p>📊 Chưa có dữ liệu tuyến đường</p>
               </div>
             )}
@@ -200,22 +195,24 @@ const TopCharts: React.FC<TopChartsProps> = ({
       </Col>
 
       <Col xs={24} lg={12}>
-        <Card 
-          title="🚌 Top 5 Chuyến đi Doanh thu cao nhất" 
+        <Card
+          title="🚌 Top 5 Chuyến đi Doanh thu cao nhất"
           size="small"
           bodyStyle={{ padding: "16px 8px", height: "340px" }}
         >
           <div style={{ width: "100%", height: "300px", overflow: "hidden" }}>
             {hasTripsData ? (
-              <Column {...topTripsConfig} height={300} autoFit key={key}/>
+              <Column {...topTripsConfig} height={300} autoFit key={key} />
             ) : (
-              <div style={{ 
-                display: "flex", 
-                justifyContent: "center", 
-                alignItems: "center", 
-                height: "100%",
-                color: "#999"
-              }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "100%",
+                  color: "#999",
+                }}
+              >
                 <p>🚌 Chưa có dữ liệu chuyến đi</p>
               </div>
             )}

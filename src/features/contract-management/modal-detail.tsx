@@ -81,14 +81,34 @@ const ModalDetail = ({
   const queryClient = useQueryClient();
   const [verificationResult, setVerificationResult] =
     useState<AIVerificationResponse | null>(null);
+  const [isPolling, setIsPolling] = useState(false);
 
   useEffect(() => {
     if (isDetailModalVisible && selectedContract?.verificationResult) {
       setVerificationResult(selectedContract.verificationResult);
-    } else if (isDetailModalVisible) {
+      setIsPolling(false);
+    } else if (isDetailModalVisible && selectedContract) {
       setVerificationResult(null);
+      // Start polling for verification result if contract is PENDING or ACCEPTED
+      if (
+        selectedContract.status === ContractStatus.PENDING ||
+        selectedContract.status === ContractStatus.ACCEPTED
+      ) {
+        setIsPolling(true);
+      }
     }
   }, [selectedContract, isDetailModalVisible]);
+
+  // Auto-refresh contract data every 3 seconds when polling
+  useEffect(() => {
+    if (!isPolling || !selectedContract) return;
+
+    const intervalId = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(intervalId);
+  }, [isPolling, selectedContract, queryClient]);
 
   const reviewMutation = useMutation({
     mutationFn: ({

@@ -1,9 +1,10 @@
-
-
 import React, { useState, useEffect, useRef } from "react";
 import { Card, Row, Col } from "antd";
 import { Column, Line, Pie } from "@ant-design/charts";
-import type { YearlyRevenueByMonth, BookingStatusCount } from "../../../app/api/revenue";
+import type {
+  YearlyRevenueByMonth,
+  BookingStatusCount,
+} from "../../../app/api/revenue";
 
 interface YearlyRevenueChartsProps {
   yearlyData: YearlyRevenueByMonth[] | undefined;
@@ -42,10 +43,12 @@ const YearlyRevenueCharts: React.FC<YearlyRevenueChartsProps> = ({
   // Cấu hình biểu đồ cột doanh thu
   const revenueColumnConfig = {
     data:
-      yearlyData?.map((item) => ({
-        month: `Tháng ${item.month}`,
-        revenue: item.totalRevenue,
-      })) || [],
+      yearlyData?.map((item) => {
+        return {
+          month: `Tháng ${item.month}`,
+          revenue: item.totalRevenue || 0,
+        };
+      }) || [],
     xField: "month",
     yField: "revenue",
     columnStyle: {
@@ -60,14 +63,30 @@ const YearlyRevenueCharts: React.FC<YearlyRevenueChartsProps> = ({
     },
     label: {
       position: "top" as const,
-      formatter: (data: { revenue: number }) =>
-        data.revenue > 0 ? formatCurrency(data.revenue) : "",
+      style: {
+        fill: "#000",
+        opacity: 0.6,
+      },
+      formatter: (datum: any) => {
+        const value = datum.revenue || 0;
+        return value > 0 ? formatCurrency(value) : "";
+      },
     },
     tooltip: {
-      formatter: (datum: { month: string; revenue: number }) => ({
-        name: datum.month,
-        value: formatCurrency(datum.revenue),
-      }),
+      customContent: (title: string, items: any[]) => {
+        if (!items || items.length === 0) return "";
+        const item = items[0];
+        const revenue = item?.data?.revenue || 0;
+        return `
+          <div style="padding: 8px 12px;">
+            <div style="margin-bottom: 4px; font-weight: 500;">${title}</div>
+            <div style="display: flex; align-items: center;">
+              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #1890ff; margin-right: 8px;"></span>
+              <span>Doanh thu: ${formatCurrency(revenue)}</span>
+            </div>
+          </div>
+        `;
+      },
     },
     autoFit: true, // Đảm bảo tự động điều chỉnh kích thước
   };
@@ -95,14 +114,13 @@ const YearlyRevenueCharts: React.FC<YearlyRevenueChartsProps> = ({
     },
     smooth: true,
     tooltip: {
-      formatter: (datum: {
-        month: string;
-        passengers: number;
-        trips: number;
-      }) => ({
-        name: `Hành khách ${datum.month}`,
-        value: `${datum.passengers} người (${datum.trips} chuyến)`,
-      }),
+      fields: ["month", "passengers", "trips"],
+      formatter: (datum: any) => {
+        return {
+          name: "Hành khách",
+          value: `${datum.passengers || 0} người (${datum.trips || 0} chuyến)`,
+        };
+      },
     },
     autoFit: true, // Đảm bảo tự động điều chỉnh kích thước
   };
@@ -154,17 +172,26 @@ const YearlyRevenueCharts: React.FC<YearlyRevenueChartsProps> = ({
     <Row gutter={16} style={{ marginBottom: "24px" }}>
       <Col xs={24} lg={8}>
         <Card title="Doanh thu theo tháng" size="small">
-          <div ref={revenueRef} style={{ width: "100%", height: "300px", overflow: "hidden" }}>
+          <div
+            ref={revenueRef}
+            style={{ width: "100%", height: "300px", overflow: "hidden" }}
+          >
             {yearlyData && yearlyData.length > 0 ? (
-              <Column {...revenueColumnConfig} height={300} key={`revenue-${key}`} />
+              <Column
+                {...revenueColumnConfig}
+                height={300}
+                key={`revenue-${key}`}
+              />
             ) : (
-              <div style={{ 
-                display: "flex", 
-                justifyContent: "center", 
-                alignItems: "center", 
-                height: "100%",
-                color: "#999"
-              }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "100%",
+                  color: "#999",
+                }}
+              >
                 <p>Chưa có dữ liệu doanh thu</p>
               </div>
             )}
@@ -174,17 +201,26 @@ const YearlyRevenueCharts: React.FC<YearlyRevenueChartsProps> = ({
 
       <Col xs={24} lg={8}>
         <Card title="Hành khách theo tháng" size="small">
-          <div ref={passengersRef} style={{ width: "100%", height: "300px", overflow: "hidden" }}>
+          <div
+            ref={passengersRef}
+            style={{ width: "100%", height: "300px", overflow: "hidden" }}
+          >
             {yearlyData && yearlyData.length > 0 ? (
-              <Line {...passengersLineConfig} height={300} key={`passengers-${key}`} />
+              <Line
+                {...passengersLineConfig}
+                height={300}
+                key={`passengers-${key}`}
+              />
             ) : (
-              <div style={{ 
-                display: "flex", 
-                justifyContent: "center", 
-                alignItems: "center", 
-                height: "100%",
-                color: "#999"
-              }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "100%",
+                  color: "#999",
+                }}
+              >
                 <p>Chưa có dữ liệu hành khách</p>
               </div>
             )}
@@ -194,17 +230,26 @@ const YearlyRevenueCharts: React.FC<YearlyRevenueChartsProps> = ({
 
       <Col xs={24} lg={8}>
         <Card title="Trạng thái Booking" size="small">
-          <div ref={bookingRef} style={{ width: "100%", height: "300px", overflow: "hidden" }}>
+          <div
+            ref={bookingRef}
+            style={{ width: "100%", height: "300px", overflow: "hidden" }}
+          >
             {bookingStatusData && bookingStatusData.length > 0 ? (
-              <Pie {...bookingStatusConfig} height={300} key={`booking-${key}`} />
+              <Pie
+                {...bookingStatusConfig}
+                height={300}
+                key={`booking-${key}`}
+              />
             ) : (
-              <div style={{ 
-                display: "flex", 
-                justifyContent: "center", 
-                alignItems: "center", 
-                height: "100%",
-                color: "#999"
-              }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "100%",
+                  color: "#999",
+                }}
+              >
                 <p>Chưa có dữ liệu trạng thái booking</p>
               </div>
             )}
